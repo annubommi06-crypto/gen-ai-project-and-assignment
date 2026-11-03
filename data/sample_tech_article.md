@@ -17,3 +17,4 @@ When building vector-based search:
 1. Always normalize your embeddings so that dot product matches cosine similarity.
 2. Store rich metadata alongside your vectors to support structured pre-filtering.
 3. Test multiple chunk sizes (e.g., 200, 500, 1000 characters) to identify the optimal context window for your embedding model.
+

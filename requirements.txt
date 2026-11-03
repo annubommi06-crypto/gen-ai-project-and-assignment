@@ -25,3 +25,4 @@ fpdf2>=2.7.7
 jupyterlab>=4.0.0
 ipykernel>=6.25.0
 notebook>=7.0.0
+
