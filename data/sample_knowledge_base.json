@@ -1,0 +1,34 @@
+[
+  {
+    "id": "KB-101",
+    "topic": "Embeddings",
+    "question": "What is the difference between sparse and dense embeddings?",
+    "answer": "Sparse embeddings like One-Hot or TF-IDF represent words in high-dimensional vectors where most values are zero, lacking semantic relationships. Dense embeddings like Word2Vec and Sentence Transformers compress meaning into low-dimensional continuous vectors where geometric proximity captures conceptual similarity.",
+    "category": "Fundamentals",
+    "difficulty": "Beginner"
+  },
+  {
+    "id": "KB-102",
+    "topic": "Metrics",
+    "question": "Why is Cosine Similarity preferred over Euclidean distance for text embeddings?",
+    "answer": "Cosine similarity measures the angle between vectors rather than magnitude. This makes it invariant to document length, meaning two documents discussing the same topic will have high cosine similarity even if one is a short summary and the other is an extensive article.",
+    "category": "Mathematics",
+    "difficulty": "Intermediate"
+  },
+  {
+    "id": "KB-103",
+    "topic": "VectorDB",
+    "question": "How does ChromaDB manage persistence?",
+    "answer": "ChromaDB provides PersistentClient which persists metadata and vector graph indices to SQLite and Parquet files in a designated local directory, ensuring collections survive process restarts.",
+    "category": "Storage",
+    "difficulty": "Intermediate"
+  },
+  {
+    "id": "KB-104",
+    "topic": "RAG",
+    "question": "What is the danger of setting chunk size too small in RAG?",
+    "answer": "If chunk size is too small, critical surrounding context is lost, resulting in fragmented pieces of information that lack syntactic and semantic coherence when fed to the LLM generator.",
+    "category": "Retrieval",
+    "difficulty": "Advanced"
+  }
+]

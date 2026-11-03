@@ -1,0 +1,66 @@
+# Enterprise AI Systems & Retrieval Architecture Handbook
+Version: 2.4 | Classification: Technical Guideline | Author: AI Platform Engineering Team
+
+## 1. Executive Summary & Architectural Scope
+Modern Enterprise Generative AI systems rely on hybrid retrieval-augmented generation (RAG) pipelines to anchor Large Language Models (LLMs) to verifiable enterprise ground truth. By decoupling parameterized internal knowledge from dynamic external retrieval, organizations mitigate model hallucinations, enforce strict data access controls, and provide traceable citations for downstream decision-making.
+
+This manual outlines engineering best practices for document ingestion, token budgeting, chunking strategies, vector embeddings, high-dimensional similarity metrics, and vector database lifecycle operations. Every component within this pipeline directly influences retrieval precision, recall, and end-to-end generation fidelity.
+
+## 2. Ingestion & Document Preprocessing Standards
+Document ingestion represents the critical first frontier in vector pipeline engineering. Ingested artifacts originate from heterogeneous sources:
+- Unstructured text transcripts and RFC specification documents.
+- Semistructured Markdown technical manuals and knowledge base articles.
+- High-fidelity PDF technical manuals containing hierarchical headers and tables.
+- Machine-generated JSON audit logs and structured schema definitions.
+
+When parsing documents, ingestion pipelines must maintain clean provenance metadata including document ID, source URL or repository URI, original page numbers, creation timestamp, access control lists (ACLs), and SHA-256 payload checksums. Ingesting uncleaned text containing repetitive headers, navigation footers, or unescaped control characters dilutes embedding vector quality and pollutes the semantic vector space.
+
+## 3. Chunking Strategies and Context Preservation
+Chunking decomposes large documents into coherent semantic passages suitable for context windows of transformer embedding models. The selection of chunking strategy is governed by retrieval objectives:
+
+### 3.1 Fixed-Size Sliding Windows
+Fixed-size character chunking slices text into blocks of predefined lengths (e.g., 500 characters) with a designated overlap (e.g., 50 characters). While computationally trivial and deterministic, fixed-size windows frequently bifurcate sentences, split numeric data across boundaries, and compromise sentence syntax.
+
+### 3.2 Recursive Structural Chunking
+Recursive character splitting iteratively tests a hierarchical list of delimiters (typically double newlines, single newlines, whitespace, and empty strings). It preserves paragraph integrity first, cascading down to sub-sentence delimiters only when an individual paragraph exceeds the maximum chunk length. This preserves semantic cohesion while respecting token boundaries.
+
+### 3.3 Token-Aware Budgeting
+Transformer embedding backbones enforce strict token input limits (e.g., 256 tokens for MiniLM, 512 for BGE/E5, 8192 for modern long-context models). Because tokenizers employ subword algorithms (such as Byte-Pair Encoding or WordPiece), character lengths do not map 1:1 with token counts. Token-aware splitters guarantee that chunk vectors never suffer truncation at the inference boundary.
+
+### 3.4 Semantic Boundary Detection
+Advanced chunking computes cosine distances between adjacent sentence embeddings. When the semantic distance exceeds an adaptive statistical threshold (indicating a topical transition), a chunk split is enacted. This ensures that every chunk represents a single cohesive semantic topic.
+
+## 4. Vector Embeddings & Representation Geometry
+Vector embeddings map discrete textual tokens into dense, continuous vector spaces where geometric proximity reflects semantic similarity. Unlike classical sparse one-hot vectors—which suffer from the curse of dimensionality and complete orthogonality—dense embeddings capture synonymy, topical relatedness, and conceptual analogies.
+
+When selecting an embedding model, engineers must evaluate three fundamental axes:
+1. Representation Dimensionality: 384 dimensions (fast inference, low RAM), 768 dimensions (balanced representation), or 1536+ dimensions (deep nuances).
+2. Asymmetric vs Symmetric Retrieval: Symmetric models compare texts of equivalent length (document-to-document), whereas asymmetric models explicitly distinguish between brief queries and verbose document passages.
+3. Normalization: Unit-normalized vectors ($L_2$ norm = 1.0) allow the dot product to equal the cosine similarity, drastically accelerating search throughput in high-throughput vector indexes.
+
+## 5. Metric Spaces: Cosine, Euclidean, and Inner Product
+Vector search engines evaluate vector proximity through designated metric spaces:
+- Cosine Similarity: Evaluates the angular separation between vectors regardless of magnitude:
+  cos(u, v) = (u . v) / (||u|| * ||v||)
+  Cosine distance is defined as 1 - cos(u, v).
+- Euclidean Distance (L2): Measures the straight-line Cartesian distance between endpoints in n-dimensional space. Sensitive to document length when embeddings are unnormalized.
+- Inner Product (Dot Product): Computes the projection of one vector onto another. When vectors are L2-normalized, Inner Product and Cosine Similarity are mathematically identical.
+
+## 6. Vector Database Architecture & ChromaDB CRUD Operations
+Vector databases provide persistent, indexed storage designed for approximate nearest neighbor (ANN) search across millions of dense vectors. ChromaDB provides an embedded vector engine featuring:
+- In-memory ephemerality for testing and PersistentClient storage backed by SQLite and Parquet files.
+- Collections behaving as isolated tables with custom distance metrics (HNSW space: cosine, l2, or ip).
+- Complete CRUD capabilities:
+  - Create: Batch addition of documents with unique alphanumeric IDs and structured metadata dictionaries.
+  - Read: Exact primary key lookups via get(), semantic similarity queries via query(), and filtered searches via metadata where clauses.
+  - Update: Targeted record mutation via update().
+  - Upsert: Idempotent add-or-update operations ensuring zero downtime during continuous ingestion pipelines.
+  - Delete: Granular deletion by explicit ID lists or categorical metadata conditions.
+
+## 7. Quality Assurance & Evaluation Frameworks
+To guarantee retrieval accuracy in production RAG systems, organizations must track three core metrics:
+1. Context Relevance: Verifying that retrieved chunks contain only information necessary to answer the user query without extraneous noise.
+2. Groundedness / Faithfulness: Ensuring the generator's response is strictly supported by the retrieved context.
+3. Answer Relevance: Confirming the final output directly answers the original prompt.
+
+Regularly auditing embedding drifts and verifying chunk boundary integrity prevents degradation over extended enterprise operational lifecycles.
